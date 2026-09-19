@@ -129,15 +129,9 @@ $("check").addEventListener("click", async () => {
 
   try {
 
-    const result = await chrome.runtime.sendMessage({
+    await chrome.runtime.sendMessage({
       type: "CHECK_NOW"
     });
-
-    if (!result?.ok) {
-      throw new Error(
-        result?.error || "Check failed"
-      );
-    }
 
   } catch (error) {
 

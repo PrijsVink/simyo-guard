@@ -42,54 +42,84 @@ async function notify(id, title, message) {
 
 async function checkUsage() {
   const s = await settings();
-  if (!s.enabled) return;
+
+  if (!s.enabled) {
+    return { ok: false, error: "DISABLED" };
+  }
 
   try {
     const usage = await getUsage();
 
     if (usage.remainingMB == null) {
       await chrome.storage.local.set({
-        lastCheck: new Date().toISOString(),
         lastError: "USAGE_FIELDS_UNKNOWN"
       });
-      return;
+
+      return {
+        ok: false,
+        error: "USAGE_FIELDS_UNKNOWN"
+      };
     }
 
     const remaining = usage.remainingMB;
+
     const update = {
       lastCheck: new Date().toISOString(),
       lastRemainingMB: remaining,
       lastError: null
     };
+
+    if (remaining > s.warningRemainingMB) {
+      update.lastWarnedAt = 0;
+    }
+
     const now = Date.now();
     const lastWarnedAt = s.lastWarnedAt ?? 0;
 
-    if (remaining > s.warningRemainingMB) update.lastWarnedAt = 0;
-    if (remaining > s.stopRemainingMB) update.autoStopTriggered = false;
-
-    if (s.notifications && remaining <= s.warningRemainingMB && (now - lastWarnedAt) >= WARNING_COOLDOWN) {
+    if (
+      s.notifications &&
+      remaining <= s.warningRemainingMB &&
+      now - lastWarnedAt >= WARNING_COOLDOWN
+    ) {
       await notify(
         "simyo-warning",
         "Simyo data warning",
-        `${Math.round(remaining)} MB remaining.`
+        `${formatData(remaining)} remaining.`
       );
+
       update.lastWarnedAt = now;
     }
 
-    if (s.autoStop && remaining <= s.stopRemainingMB && !s.autoStopTriggered) {
+    if (remaining > s.stopRemainingMB) {
+      update.autoStopTriggered = false;
+    }
+
+    if (
+      s.autoStop &&
+      remaining <= s.stopRemainingMB &&
+      !s.autoStopTriggered
+    ) {
       await setInternet(false);
+
       update.autoStopTriggered = true;
 
       await notify(
         "simyo-stopped",
         "Simyo mobile data disabled",
-        `Data was disabled at about ${Math.round(remaining)} MB remaining.`
+        `Data was disabled at about ${formatData(remaining)} remaining.`
       );
     }
 
     await chrome.storage.local.set(update);
+
+    return {
+      ok: true,
+      usage
+    };
+
   } catch (error) {
     const code = error?.message || String(error);
+
     await chrome.storage.local.set({
       lastError: code
     });
@@ -101,6 +131,11 @@ async function checkUsage() {
         "Log in to Mijn Simyo to resume Data Guard monitoring."
       );
     }
+
+    return {
+      ok: false,
+      error: code
+    };
   }
 }
 
@@ -121,8 +156,7 @@ chrome.alarms.onAlarm.addListener(async alarm => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "CHECK_NOW") {
-    checkUsage().then(() => sendResponse({ ok: true }))
-      .catch(err => sendResponse({ ok: false, error: String(err) }));
+    checkUsage().then(sendResponse);
     return true;
   }
   if (message?.type === "REBUILD_ALARM") {
