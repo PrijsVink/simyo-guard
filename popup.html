@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Simyo Data Guard</title>
+  <style>
+    body {
+      width: 330px;
+      margin: 0;
+      padding: 18px;
+      font: 14px system-ui, sans-serif;
+      color:#171717;
+    }
+    h1 { font-size: 18px; margin:0 0 16px; }
+    .usage {
+      font-size:32px;
+      font-weight:700;
+      margin:4px 0;
+    }
+    .muted {
+      color:#666;
+      font-size:12px;
+    }
+    .row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin:14px 0;
+    }
+    input[type=number] {
+      width:78px;
+      padding:6px;
+    }
+    button {
+      width:100%;
+      padding:9px;
+      margin-top:8px;
+      cursor:pointer;
+    }
+    .error {
+      margin-top:12px;
+      padding:8px;
+      background:#ffeded;
+      color:red;
+      font-size:12px;
+      white-space:pre-wrap;
+    }
+    hr { border:0; border-top:1px solid #ddd; margin:16px 0; }
+  </style>
+</head>
+<body>
+  <h1>Simyo Data Guard</h1>
+  <div class="error" id="status">Test error message</div>
+  <div class="muted">Remaining</div>
+  <div class="usage" id="remaining">—</div>
+  <div class="muted" id="lastCheck">Not checked yet</div>
+
+  <hr>
+
+  <label class="row"><span>Monitoring</span><input id="enabled" type="checkbox"></label>
+  <label class="row"><span>Notify below (MB)</span><input id="warning" type="number" min="0"></label>
+  <label class="row"><span>Notifications</span><input id="notifications" type="checkbox"></label>
+
+  <hr>
+
+  <label class="row"><span>Auto-stop mobile data</span><input id="autoStop" type="checkbox"></label>
+  <label class="row"><span>Stop below (MB)</span><input id="stop" type="number" min="0"></label>
+  <label class="row"><span>Check every (min)</span><input id="interval" type="number" min="1"></label>
+
+  <button id="save">Save settings</button>
+  <button id="check">Check now</button>
+  <button id="login">Open Mijn Simyo</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
