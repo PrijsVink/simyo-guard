@@ -49,7 +49,6 @@ async function render() {
 
   const status = $("status");
 
-  console.log(s.lastError)
   if (s.lastError) {
     status.hidden = false;
 
@@ -59,12 +58,6 @@ async function render() {
     } else if (s.lastError === "USAGE_FIELDS_UNKNOWN") {
       status.textContent =
         "Connected to Simyo, but couldn't identify the usage fields.";
-    } else if (s.lastError === "NOTIFY_REMAINING_EXCEEDS") {
-      status.textContent =
-        "Notify below should not exceeds the current remaining mb: " + s.lastRemainingMB;
-    } else if (s.lastError === "STOP_REMAINING_EXCEEDS") {
-      status.textContent =
-        "Stop below should not exceeds the current remaining mb: " + s.lastRemainingMB;
     } else {
       status.textContent = `Error: ${s.lastError}`;
     }
@@ -90,23 +83,18 @@ $("save").addEventListener("click", async () => {
 
   const s = await chrome.storage.local.get(DEFAULTS);
 
-  const warningRemainingMB = Number($("warning").value);
   const stopRemainingMB = Number($("stop").value);
+  if (
+    autoStop &&
+    s.lastRemainingMB != null &&
+    stopRemainingMB >= s.lastRemainingMB
+  ) {
+    const confirmed = confirm(
+      `You currently have ${formatData(s.lastRemainingMB)} remaining. ` +
+      `This setting may disable mobile data on the next check. Continue?`
+    );
 
-  let lastError = null;
-
-  if (s.lastRemainingMB !== null) {
-    if (warningRemainingMB > s.lastRemainingMB) {
-      lastError = "NOTIFY_REMAINING_EXCEEDS";
-    } else if (stopRemainingMB > s.lastRemainingMB) {
-      lastError = "STOP_REMAINING_EXCEEDS";
-    }
-    if (lastError !== null) {
-      await chrome.storage.local.set({
-        lastError
-      });
-
-      await render();
+    if (!confirmed) {
       return;
     }
   }
@@ -115,11 +103,10 @@ $("save").addEventListener("click", async () => {
     enabled: $("enabled").checked,
 
     notifications: $("notifications").checked,
+    warningRemainingMB: Number($("warning").value),
 
-    warningRemainingMB,
     autoStop,
     stopRemainingMB,
-    lastError,
 
     checkIntervalMinutes:
       Math.max(1, Number($("interval").value) || 15)

@@ -22,15 +22,18 @@ function normalizeOverview(raw) {
   }
   const dataBundle = result.dataBundle;
   const base = 1048576; // 1024*1024
-  const usedMB = numberAt(dataBundle, 'used') / base;
-  const totalMB = numberAt(dataBundle, 'total') / base;
-  const remainingMB = totalMB - usedMB;
+  const used = numberAt(dataBundle, 'used');
+  const total = numberAt(dataBundle, 'total');
 
-  if (remainingMB == null && usedMB != null && totalMB != null) {
-    remainingMB = Math.max(0, totalMB - usedMB);
+  if (used == null || total == null) {
+    throw new Error("USAGE_FIELDS_UNKNOWN");
   }
 
-  return { remainingMB, usedMB, totalMB, raw };
+  const usedMB = used / base;
+  const totalMB = total / base;
+  const remainingMB = Math.max(0, totalMB - usedMB);
+
+  return { remainingMB, usedMB, totalMB };
 }
 
 export async function getUsage() {

@@ -64,7 +64,7 @@ async function checkUsage() {
     const now = Date.now();
     const lastWarnedAt = s.lastWarnedAt ?? 0;
 
-    if (remaining > s.warningRemainingMB) update.warned = false;
+    if (remaining > s.warningRemainingMB) update.lastWarnedAt = 0;
     if (remaining > s.stopRemainingMB) update.autoStopTriggered = false;
 
     if (s.notifications && remaining <= s.warningRemainingMB && (now - lastWarnedAt) >= WARNING_COOLDOWN) {
@@ -91,7 +91,6 @@ async function checkUsage() {
   } catch (error) {
     const code = error?.message || String(error);
     await chrome.storage.local.set({
-      lastCheck: new Date().toISOString(),
       lastError: code
     });
 
@@ -111,7 +110,10 @@ chrome.runtime.onInstalled.addListener(async () => {
   await ensureAlarm();
 });
 
-chrome.runtime.onStartup.addListener(ensureAlarm);
+chrome.runtime.onStartup.addListener(async () => {
+  await ensureAlarm();
+  await checkUsage();
+});
 
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name === "check-simyo") await checkUsage();
