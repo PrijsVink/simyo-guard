@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Simyo Guard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Locally monitor Simyo usage and optionally disable mobile internet at a threshold.",
   "permissions": ["alarms", "notifications", "storage"],
   "host_permissions": ["https://mijn.simyo.nl/*"],

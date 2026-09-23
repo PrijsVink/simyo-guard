@@ -1,6 +1,6 @@
 const OVERVIEW_URL =
   "https://mijn.simyo.nl/api/get?endpoint=postpaidOverview";
-const UPDATE_URL = "https://mijn.simyo.nl/auth/update-token";
+const UPDATE_URL = "https://mijn.simyo.nl/api/put?endpoint=updateNetworkSettings";
 
 function numberAt(obj, path) {
   const value = obj[path];

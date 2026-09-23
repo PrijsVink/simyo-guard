@@ -1,4 +1,5 @@
 import { getUsage, setInternet } from "./simyo.js";
+import { formatData } from "./utils.js";
 
 const DEFAULTS = {
   enabled: true,
